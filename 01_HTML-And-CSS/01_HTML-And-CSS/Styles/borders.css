@@ -1,0 +1,19 @@
+﻿p {
+    border-radius: 10px;
+    padding: 4px;
+    text-align: center;
+    background-color: lightgrey;
+    border-color: red;
+}
+
+.red-border {
+    border: 2px solid red
+}
+
+.green-border {
+    border: 2px solid green
+}
+
+.blue-border {
+    border: 2px solid blue
+}
