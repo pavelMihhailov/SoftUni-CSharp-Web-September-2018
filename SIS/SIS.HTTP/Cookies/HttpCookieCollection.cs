@@ -8,6 +8,11 @@ namespace SIS.HTTP.Cookies
     {
         private readonly Dictionary<string, HttpCookie> cookies;
 
+        public HttpCookieCollection()
+        {
+            cookies = new Dictionary<string, HttpCookie>();
+        }
+
         public void Add(HttpCookie cookie)
         {
             Validator.ThrowIfNull(cookie, nameof(cookie));
