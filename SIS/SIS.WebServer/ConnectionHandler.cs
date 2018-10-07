@@ -2,9 +2,11 @@
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using SIS.HTTP.Cookies;
 using SIS.HTTP.Enums;
 using SIS.HTTP.Requests;
 using SIS.HTTP.Responses;
+using SIS.HTTP.Sessions;
 using SIS.WebServer.Routing;
 
 namespace SIS.WebServer
@@ -70,17 +72,50 @@ namespace SIS.WebServer
             await this.client.SendAsync(byteSegments, SocketFlags.None);
         }
 
+        private string SetRequestSession(IHttpRequest httpRequest)
+        {
+            string sessionId = null;
+
+            if (httpRequest.Cookies.ContainsCookie(HttpSessionStorage.SessionCookieKey))
+            {
+                var cookie = httpRequest.Cookies.GetCookie(HttpSessionStorage.SessionCookieKey);
+                sessionId = cookie.Value;
+                httpRequest.Session = HttpSessionStorage.GetSession(sessionId);
+            }
+            else
+            {
+                sessionId = Guid.NewGuid().ToString();
+                httpRequest.Session = HttpSessionStorage.GetSession(sessionId);
+            }
+
+            return sessionId;
+        }
+
+        private void SetResponseSession(IHttpResponse httpResponse, string sessionid)
+        {
+            if (sessionid != null)
+            {
+                httpResponse.AddCookie(new HttpCookie(HttpSessionStorage.SessionCookieKey,
+                    $"{sessionid};HttpOnly=true"));
+            }
+        }
+
         public async Task ProcessRequestAsync()
         {
-            var httpRequest = await this.ReadRequest();
+            var httpRequest = await ReadRequest();
 
             if (httpRequest != null)
             {
-                var httpResponse = this.HandleRequest(httpRequest);
+                string sessionId = SetRequestSession(httpRequest);
+
+                var httpResponse = HandleRequest(httpRequest);
+
+                SetResponseSession(httpResponse, sessionId);
+
                 await PrepareResponse(httpResponse);
             }
 
-            this.client.Shutdown(SocketShutdown.Both);
+            client.Shutdown(SocketShutdown.Both);
         }
     }
 }

@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using SIS.HTTP.Common;
+using SIS.HTTP.Cookies;
 using SIS.HTTP.Enums;
 using SIS.HTTP.Exceptions;
 using SIS.HTTP.Headers;
+using SIS.HTTP.Sessions;
 
 namespace SIS.HTTP.Requests
 {
@@ -13,9 +15,12 @@ namespace SIS.HTTP.Requests
     {
         public HttpRequest(string requestString)
         {
+            Validator.ThrowIfNullOrEmpty(requestString, nameof(requestString));
+
             FormData = new Dictionary<string, object>();
             QueryData = new Dictionary<string, object>();
             Headers = new HttpHeaderCollection();
+            Cookies = new HttpCookieCollection();
 
             ParseRequest(requestString);
         }
@@ -31,6 +36,10 @@ namespace SIS.HTTP.Requests
         public IHttpHeaderCollection Headers { get; }
 
         public HttpRequestMethod RequestMethod { get; private set; }
+
+        public IHttpCookieCollection Cookies { get; }
+
+        public IHttpSession Session { get; set; }
 
         private void ParseRequest(string requestString)
         {
@@ -54,6 +63,8 @@ namespace SIS.HTTP.Requests
             this.ParseRequestPath(this.Url);
 
             this.ParseHeaders(splitRequestContent.Skip(1).ToArray());
+
+            this.ParseCookies();
 
             bool requestHasBody = splitRequestContent.Length > 1;
 
@@ -186,6 +197,30 @@ namespace SIS.HTTP.Requests
             bool validRequest = requestLine.Length == 3 && requestLine[2] == GlobalConstants.HttpOneProtocolFragment;
 
             return validRequest;
+        }
+
+        private void ParseCookies()
+        {
+            if (Headers.ContainsHeader("Cookie"))
+            {
+                var cookieValue = Headers.GetHeader("Cookie").Value;
+
+                if (string.IsNullOrEmpty(cookieValue)) return;
+
+                string[] cookies = cookieValue.Split("; ");
+
+                foreach (var splitCookie in cookies)
+                {
+                    string[] cookieParts = splitCookie.Split('=', 2, StringSplitOptions.RemoveEmptyEntries);
+
+                    if (cookieParts.Length != 2) continue;
+
+                    string key = cookieParts[0];
+                    string value = cookieParts[1];
+
+                    Cookies.Add(new HttpCookie(key, value, false));
+                }
+            }
         }
     }
 }
