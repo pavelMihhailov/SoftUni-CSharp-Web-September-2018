@@ -1,0 +1,57 @@
+﻿@if (User.Role == "Admin")
+{
+<h1 class="text-center">Hello, Administrator @User.Username!</h1>
+}
+@else
+{
+<h1 class="text-center">Hello, @User.Username!</h1>
+}
+<hr class="hr-2 bg-panda">
+<div class="mt-3">
+    <div class="w-25">
+        <h3 class="text-center">Pending</h3>
+    </div>
+    <div class="border-panda w-25">
+        <div class="m-2">
+            @foreach(var item in Model.Pending)
+            {
+                <div class="text-panda">
+                    @item.Name
+                    <a href="/Receipts/Details?id=@item.Id" class="btn bg-panda text-white float-right">Details</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+<div class="mt-3">
+    <div class="w-25">
+        <h3 class="text-center">Shipped</h3>
+    </div>
+    <div class="border-panda w-25">
+        <div class="m-2">
+            @foreach(var item in Model.Shipped)
+            {
+                 <div class="text-panda">
+                     @item.Name
+                     <a href="/Receipts/Details?id=@item.Id" class="btn bg-panda text-white float-right">Details</a>
+                 </div>
+            }
+        </div>
+    </div>
+</div>
+<div class="mt-3">
+    <div class="w-25">
+        <h3 class="text-center">Delivered</h3>
+    </div>
+    <div class="border-panda w-25">
+        <div class="m-2">
+            @foreach(var item in Model.Delivered)
+            {
+                <div class="text-panda">
+                    @item.Name
+                    <a href="/Receipts/Acquire?id=@item.Id" class="btn bg-panda text-white float-right">Acquire</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
